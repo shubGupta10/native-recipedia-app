@@ -1,9 +1,9 @@
-import {Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator} from 'react-native';
-import React, {useState} from 'react';
+import {Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import {useAuthStore} from "@/store/useAuthStore";
 import {COLORS} from "@/assets/colors";
 import {Ionicons} from "@expo/vector-icons";
-import {GenerateRecipes} from "@/firebase/firebaseFunctions";
+import {GenerateRecipes, saveRecipeToFirestore} from "@/firebase/firebaseFunctions";
 import Markdown from 'react-native-markdown-display';
 
 // Define the recipe response type
@@ -28,6 +28,11 @@ const Generate = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
     const {user} = useAuthStore();
+    const [userId, setUserId] = useState<string | "">("");
+
+    useEffect(() => {
+        setUserId(user?.uid as string)
+    }, [user]);
 
     const handleGenerate = async () => {
         if (!ingredientsText.trim()) return;
@@ -43,7 +48,6 @@ const Generate = () => {
 
         try {
             const result = await GenerateRecipes(ingredientsArray);
-            console.log("Generated recipe:", result);
 
             let parsedResult: RecipeResponse;
 
@@ -139,6 +143,26 @@ const Generate = () => {
             </View>
         );
     };
+
+    const handleSaveReceipe = async () => {
+        try {
+            if (!userId || !recipeResponse) {
+                Alert.alert("Missing data", "User ID or recipe is missing.");
+                return;
+            }
+
+            const result = await saveRecipeToFirestore(userId, recipeResponse);
+
+            Alert.alert(
+                "Recipe Saved",
+                "Your recipe has been saved successfully!"
+            );
+        } catch (error) {
+            console.error("Error saving recipe:", error);
+            Alert.alert("Error", "Something went wrong while saving the recipe.");
+        }
+    };
+
 
     return (
         <ScrollView
@@ -266,6 +290,18 @@ const Generate = () => {
                     </View>
 
                     <RecipeDisplay />
+
+                    <View className="flex-row justify-center gap-4 mb-8">
+                        <TouchableOpacity
+                            onPress={handleSaveReceipe}
+                            className="flex-row items-center justify-center py-3 px-5 rounded-xl shadow-sm flex-1"
+                            style={{backgroundColor: COLORS.primary}}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons name="bookmark-outline" size={18} style={{color: COLORS.white, marginRight: 8}} />
+                            <Text className="font-semibold" style={{color: COLORS.white}}>Save Recipe</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             )}
         </ScrollView>

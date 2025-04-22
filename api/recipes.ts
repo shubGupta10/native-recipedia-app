@@ -1,33 +1,23 @@
+import {getCachedOrFetch} from '@/utility/getCachedOrFetched'
+
 const API_KEY= process.env.EXPO_PUBLIC_SPOON_API_KEY!;
 
 const BASE_URL = "https://api.spoonacular.com";
 
-export const getRandomRecipes = async () => {
-    const res = await fetch(`${BASE_URL}/recipes/random?number=10&apikey=${API_KEY}`);
-    const data = await res.json();
-    return data.recipes[0];
-}
-
-export const getPopularRecipes = async () => {
-    try {
+export const getPopularRecipes = () => {
+    return getCachedOrFetch("popular_recipes", async () => {
         const res = await fetch(`${BASE_URL}/recipes/complexSearch?sort=popularity&number=10&cuisine=Indian&apiKey=${API_KEY}`);
         const data = await res.json();
         return Array.isArray(data.results) ? data.results : [];
-    } catch (error) {
-        console.error("Error fetching popular recipes:", error);
-        return [];
-    }
+    });
 };
 
-export const getHealthyRecipes = async () => {
-    try {
+export const getHealthyRecipes = () => {
+    return getCachedOrFetch("healthy_recipes", async () => {
         const res = await fetch(`${BASE_URL}/recipes/complexSearch?maxCalories=300&number=10&cuisine=Indian&apiKey=${API_KEY}`);
         const data = await res.json();
         return Array.isArray(data.results) ? data.results : [];
-    } catch (error) {
-        console.error("Error fetching healthy recipes:", error);
-        return [];
-    }
+    });
 };
 
 export const searchRecipes = async (query: string) => {
@@ -40,6 +30,21 @@ export const searchRecipes = async (query: string) => {
         console.error('Error searching recipes:', error);
         return [];
     }
+};
+
+export const fetchRecipesBasedOnCategory = async (category: string) => {
+    const cacheKey = `recipes_${category}`;
+
+    return getCachedOrFetch(cacheKey, async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/recipes/complexSearch?category=${category}&number=10&cuisine=Indian&apiKey=${API_KEY}`);
+            const data = await res.json();
+            return Array.isArray(data.results) ? data.results : [];
+        } catch (error) {
+            console.error("Error fetching recipes based on category:", error);
+            return [];
+        }
+    });
 };
 
 

@@ -1,5 +1,8 @@
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile} from "firebase/auth"
-import { auth } from "./firebaseClient"
+import {auth, db} from "./firebaseClient"
+import {doc, setDoc} from "@firebase/firestore";
+import {generateRandomId} from "@/utility/GenerateRandomId";
+
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL!
 
 export const registerUser = async (name: string, email: string, password: string) => {
@@ -27,6 +30,7 @@ export const loginUser = async (email: string, password: string) => {
     }
 }
 
+
 export const GenerateRecipes = async (ingredients: string[]) => {
     try {
         const res = await fetch(`${BACKEND_URL}/api/generate-recipe`, {
@@ -34,13 +38,39 @@ export const GenerateRecipes = async (ingredients: string[]) => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ ingredients })
+            body: JSON.stringify({ ingredients }),
         });
+
+        if (!res.ok) {
+            throw new Error("Failed to generate recipe");
+        }
 
         const data = await res.json();
         return data;
     } catch (error) {
-        console.error("Error while calling generate-recipe API:", error);
+        console.error("Error generating recipe from API:", error);
         throw error;
     }
 };
+
+export const saveRecipeToFirestore = async (userId: string, recipeData: any) => {
+    try {
+        const recipeId = generateRandomId();
+
+        const recipeDocRef = doc(db, "Recipes", userId, "UserRecipes", recipeId);
+
+        const fullRecipeData = {
+            ...recipeData,
+            recipeId,
+            createdAt: new Date().toISOString(),
+        };
+
+        await setDoc(recipeDocRef, fullRecipeData);
+
+        return fullRecipeData;
+    } catch (error) {
+        console.error("Error saving recipe to Firestore:", error);
+        throw error;
+    }
+};
+
