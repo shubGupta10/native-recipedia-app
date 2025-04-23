@@ -26,7 +26,7 @@ const Login = () => {
       {/* Header Image */}
       <View className="h-1/3 w-full overflow-hidden">
         <Image
-          source={{ uri: "https://storyset.com/illustration/chef/amico#C88468FF&hide=&hide=complete" }}
+          source="./assets/images/loginImage.png"
           placeholder='Register Image'
           contentFit="cover"
           className="w-full h-full"
