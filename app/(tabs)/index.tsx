@@ -1,4 +1,4 @@
-import {ScrollView, Text, TextInput, View, Dimensions, TouchableOpacity} from 'react-native'
+import {ScrollView, Text, TextInput, View, Dimensions, TouchableOpacity, Pressable} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import { useAuthStore } from "@/store/useAuthStore"
 import { Ionicons } from "@expo/vector-icons"
@@ -7,6 +7,7 @@ import PopularCategories from "@/components/PopularCategories";
 import {getHealthyRecipes, getPopularRecipes} from "@/api/recipes";
 import {Image} from "expo-image";
 import { useRouter } from "expo-router";
+import DisplayUserSavedRecipe from "@/components/displayUserSavedRecipe";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.65;
@@ -27,8 +28,8 @@ interface HealthyRecipesProps {
 }
 
 const Index = () => {
-    const [popularRecipes, setPopularRecipes] = useState([])
-    const [healthyRecipes, setHealthyRecipes] = useState([])
+    const [popularRecipes, setPopularRecipes] = useState<PopularCategoriesProps[]>([])
+    const [healthyRecipes, setHealthyRecipes] = useState<HealthyRecipesProps[]>([])
     const { user } = useAuthStore();
     const router = useRouter();
 
@@ -97,6 +98,10 @@ const Index = () => {
                 </View>
             </TouchableOpacity>
 
+            <View>
+                <DisplayUserSavedRecipe/>
+            </View>
+
             <PopularCategories />
 
             <View className="px-5 mb-2">
@@ -108,7 +113,11 @@ const Index = () => {
                     contentContainerStyle={{ paddingRight: 16 }}
                 >
                     {popularRecipes.map((recipe: PopularCategoriesProps) => (
-                        <View
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/(screen)/displayPopularRecipe/[recipeId]",
+                                params: {recipeId: recipe.id}
+                            })}
                             key={recipe.id}
                             style={{
                                 backgroundColor: COLORS.cardBackground,
@@ -146,7 +155,7 @@ const Index = () => {
                             >
                                 {truncateText(recipe.title)}
                             </Text>
-                        </View>
+                        </Pressable>
                     ))}
                 </ScrollView>
             </View>
@@ -160,7 +169,11 @@ const Index = () => {
                     contentContainerStyle={{ paddingRight: 16 }}
                 >
                     {healthyRecipes.map((recipe: HealthyRecipesProps) => (
-                        <View
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/(screen)/displayPopularRecipe/[recipeId]",
+                                params: {recipeId: recipe.id}
+                            })}
                             key={recipe.id}
                             style={{
                                 backgroundColor: COLORS.cardBackground,
@@ -198,7 +211,7 @@ const Index = () => {
                             >
                                 {truncateText(recipe.title)}
                             </Text>
-                        </View>
+                        </Pressable>
                     ))}
                 </ScrollView>
             </View>

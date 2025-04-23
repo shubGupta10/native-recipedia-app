@@ -1,39 +1,82 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CACHE_DURATION = 24*60*60*1000; // 24h
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-export const getCachedOrFetch = async <T>(key: string, fetchFn: () => Promise<T>): Promise<T> => {
+export const fetchAndCache = async <T>(key: string, url: string): Promise<T[]> => {
     try {
-        // Check if data exists in cache
         const cached = await AsyncStorage.getItem(key);
-
         if (cached) {
-            const parsedCache = JSON.parse(cached);
-            const { data, timestamp } = parsedCache;
-
-            // Check if cache is still valid
+            const { timestamp, data } = JSON.parse(cached);
             if (Date.now() - timestamp < CACHE_DURATION) {
-                console.log("Serving from cache:", key);
                 return data;
             }
-            // Cache expired, will fetch new data
         }
 
-        // Fetch new data if no cache or expired
-        console.log("Fetching fresh data for:", key);
-        const data = await fetchFn();
-        console.log("Fetching fresh data:", key);
+        const res = await fetch(url);
+        const result = await res.json();
+        const fetchedData = Array.isArray(result.results) ? result.results : [];
 
-        // Store the new data in cache
         await AsyncStorage.setItem(key, JSON.stringify({
-            data,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            data: fetchedData,
         }));
 
+        return fetchedData;
+    } catch (error) {
+        console.error(`Error fetching or caching ${key}:`, error);
+        return [];
+    }
+};
+
+
+export const fetchAndCacheForCategory = async <T>(key: string, fetchFn: () => Promise<T[]>): Promise<T[]> => {
+    try {
+        const cached = await AsyncStorage.getItem(key);
+        if (cached) {
+            const { timestamp, data } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+                return data;
+            }
+        }
+
+        const data = await fetchFn();
+        await AsyncStorage.setItem(
+            key,
+            JSON.stringify({ timestamp: Date.now(), data })
+        );
+
         return data;
+    } catch (error) {
+        console.error(`Error in fetchAndCache for key: ${key}`, error);
+        return [];
+    }
+};
+
+
+export const storeWithExpiry = async <T>(key: string, value: T, ttlInHours = 24): Promise<void> => {
+    const now = new Date();
+    const item = {
+        value,
+        expiry: now.getTime() + ttlInHours * 60 * 60 * 1000, // 24 hours in ms
+    };
+    await AsyncStorage.setItem(key, JSON.stringify(item));
+};
+
+export const getWithExpiry = async <T>(key: string): Promise<T | null> => {
+    const itemStr = await AsyncStorage.getItem(key);
+    if (!itemStr) return null;
+
+    try {
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+            await AsyncStorage.removeItem(key);
+            return null;
+        }
+        return item.value as T;
     } catch (err) {
-        console.error("Cache fetch error:", err);
-        // If there's an error with the cache, fallback to API
-        return fetchFn();
+        console.error("Error parsing stored data", err);
+        return null;
     }
 };

@@ -1,9 +1,10 @@
 import {FlatList, Text, TextInput, TouchableOpacity, View, Dimensions, ActivityIndicator} from 'react-native'
-import React, {useState} from 'react'
+import React, {useState, useEffect, useCallback} from 'react'
 import {COLORS} from "@/assets/colors";
 import {Ionicons} from "@expo/vector-icons";
 import {searchRecipes} from "@/api/recipes";
 import {Image} from "expo-image";
+import {router} from "expo-router";
 
 const {width} = Dimensions.get('window');
 
@@ -18,20 +19,38 @@ const Search = () => {
     const [results, setResults] = useState<RecipeItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const handleSearchPress = async () => {
-        if(!userType.trim()) return;
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        // Create a debounced version of the search function
+        debounce(async (searchTerm: string) => {
+            if(!searchTerm.trim()) {
+                setResults([]);
+                return;
+            }
 
-        setIsLoading(true);
-        try {
-            const recipes = await searchRecipes(userType);
-            setResults(recipes);
-            console.log("Searched Recipes", recipes);
-        } catch (error) {
-            console.log("Search error:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }
+            setIsLoading(true);
+            try {
+                const recipes = await searchRecipes(searchTerm);
+                setResults(recipes);
+                console.log("Searched Recipes", recipes);
+            } catch (error) {
+                console.log("Search error:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }, 300),
+        []
+    );
+
+    // Effect to trigger search when userType changes
+    useEffect(() => {
+        debouncedSearch(userType);
+
+        // Cleanup function to cancel pending debounced calls when component unmounts
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [userType, debouncedSearch]);
 
     const renderRecipeItem = ({item}: {item: RecipeItem}) => (
         <TouchableOpacity
@@ -46,6 +65,10 @@ const Search = () => {
                 shadowRadius: 4,
                 elevation: 2,
             }}
+            onPress={() => router.push({
+                pathname: "/(screen)/displayPopularRecipe/[recipeId]",
+                params: {recipeId: item.id}
+            })}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Image
@@ -105,9 +128,7 @@ const Search = () => {
                         value={userType}
                         onChangeText={(value: string) => setUserType(value)}
                     />
-                    <TouchableOpacity onPress={handleSearchPress}>
-                        <Ionicons name='search' size={24} color={COLORS.primary} />
-                    </TouchableOpacity>
+                    <Ionicons name='search' size={24} color={COLORS.primary} />
                 </View>
 
                 {isLoading ? (
@@ -132,6 +153,32 @@ const Search = () => {
             </View>
         </View>
     )
+}
+
+// Debounce utility function
+function debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout | null = null;
+
+    const debounced = function(...args: any[]) {
+        const later = () => {
+            timeout = null;
+            func(...args);
+        };
+
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(later, wait);
+    };
+
+    debounced.cancel = function() {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+        }
+    };
+
+    return debounced;
 }
 
 export default Search

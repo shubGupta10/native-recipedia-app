@@ -1,6 +1,6 @@
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile} from "firebase/auth"
 import {auth, db} from "./firebaseClient"
-import {doc, setDoc} from "@firebase/firestore";
+import {collection, doc, getDoc, getDocs, setDoc} from "@firebase/firestore";
 import {generateRandomId} from "@/utility/GenerateRandomId";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL!
@@ -74,3 +74,36 @@ export const saveRecipeToFirestore = async (userId: string, recipeData: any) => 
     }
 };
 
+export const fetchSavedRecipe = async (userId: string) => {
+    try {
+        const recipeCollectionRef = collection(db, "Recipes", userId, "UserRecipes");
+        const snapshot = await getDocs(recipeCollectionRef);
+
+        const savedRecipes = snapshot.docs.map((docSnap) => {
+            const data = docSnap.data();
+            const { recipeId, name } = data;
+            return { recipeId, name };
+        });
+
+        return savedRecipes;
+    } catch (error) {
+        console.error("Error fetching saved recipes:", error);
+        return [];
+    }
+};
+
+export const getRecipeById = async (userId: string, recipeId: string) => {
+    try {
+        const recipeDocRef = doc(db, "Recipes", userId, "UserRecipes", recipeId);
+        const docSnap = await getDoc(recipeDocRef);
+
+        if (!docSnap.exists()) {
+            throw new Error("Recipe not found");
+        }
+
+        return docSnap.data();
+    } catch (error) {
+        console.error("Error fetching recipe by ID:", error);
+        throw error;
+    }
+};
