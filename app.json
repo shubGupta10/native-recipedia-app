@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Recipedia",
-    "slug": "food-app",
+    "slug": "recipedia-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/recipediaIcon.png",
@@ -36,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fef41a58-dc50-43c8-877a-d65e5b4ac242"
+      }
+    },
+    "owner": "shubham720"
   }
 }
