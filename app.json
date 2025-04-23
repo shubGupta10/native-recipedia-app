@@ -4,7 +4,7 @@
     "slug": "food-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/loginImage.png",
+    "icon": "./assets/images/recipediaIcon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/loginImage.png",
+        "foregroundImage": "./assets/images/recipediaIcon.png",
         "backgroundColor": "#ffffff"
       }
     },
@@ -27,7 +27,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/loginImage.png",
+          "image": "./assets/images/recipediaIcon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
