@@ -12,6 +12,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { COLORS } from "@/assets/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {SpeakTheRecipe} from '@/components/SpeakRecipie/speakData'
 
 interface Recipe {
     name: string;
@@ -34,6 +35,7 @@ const DisplaySavedRecipe = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+
     useEffect(() => {
         const fetchById = async () => {
             setLoading(true);
@@ -51,7 +53,6 @@ const DisplaySavedRecipe = () => {
         fetchById();
     }, [recipeId, userId]);
 
-    // Format the date
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -85,6 +86,15 @@ const DisplaySavedRecipe = () => {
                 </TouchableOpacity>
             </SafeAreaView>
         );
+    }
+
+    const handleSpeak = async () => {
+        try {
+            console.log("Speak")
+            await SpeakTheRecipe(recipe);
+        }catch (error){
+
+        }
     }
 
     return (
@@ -126,10 +136,21 @@ const DisplaySavedRecipe = () => {
 
                 {/* Ingredients Section */}
                 <View className="mb-6 px-4">
-                    <View className="flex-row items-center mb-3">
-                        <Ionicons name="list-outline" size={22} color={COLORS.primary} />
-                        <Text className="text-xl font-bold text-[#50372a] ml-2">Ingredients</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                        <View className="flex-row items-center">
+                            <Ionicons name="list-outline" size={22} color={COLORS.primary} />
+                            <Text className="text-xl font-bold text-[#50372a] ml-2">Ingredients</Text>
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={handleSpeak}
+                            className="flex-row items-center mr-5"
+                        >
+                            <Ionicons name="mic-circle-outline" size={22} color={COLORS.primary} />
+                            <Text className="text-xl font-bold text-[#50372a] ml-2">Speak</Text>
+                        </TouchableOpacity>
                     </View>
+
                     <View className="bg-[#faf5eb] rounded-xl p-4">
                         {recipe.ingredients.map((ingredient, index) => (
                             <View key={index} className="flex-row mb-2.5 items-start">

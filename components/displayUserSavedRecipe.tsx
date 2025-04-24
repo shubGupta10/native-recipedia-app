@@ -3,14 +3,12 @@ import {
     View,
     TouchableOpacity,
     ActivityIndicator,
-    FlatList
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { fetchSavedRecipe } from "@/firebase/firebaseFunctions";
 import { COLORS } from "@/assets/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from "@/store/useAuthStore";
 
 interface SavedRecipe {

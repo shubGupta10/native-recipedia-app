@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/recipediaIcon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.shubham720.recipediaapp"
     },
     "web": {
       "bundler": "metro",
