@@ -76,7 +76,7 @@ export const getHealthyRecipes = async (): Promise<HealthyRecipesProps[]> => {
 
 export const searchRecipes = async (query: string) => {
     try {
-        const result = await fetch(`${BASE_URL}/recipes/complexSearch?query=${query}&apiKey=${API_KEY}`);
+        const result = await fetch(`${BASE_URL}/recipes/complexSearch?query=${query}&cuisine=Indian&apiKey=${API_KEY}`);
         const data = await result.json();
         console.log(data);
         return data.results || [];
@@ -89,7 +89,7 @@ export const searchRecipes = async (query: string) => {
 export const fetchRecipesBasedOnCategory = async (category: string) => {
     try {
         const res = await fetch(
-            `${BASE_URL}/recipes/complexSearch?type=dessert&number=20&cuisine=Indian&apiKey=${API_KEY}`
+            `${BASE_URL}/recipes/complexSearch?type=dessert&number=20&cuisine=${category}&apiKey=${API_KEY}`
         );
         const data = await res.json();
         console.log("Full API Response:", data);

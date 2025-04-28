@@ -98,7 +98,7 @@ const Register = () => {
               keyboardVisible && Platform.OS === "ios" ? { height: 100 } : null
             ]}>
               <Image
-                source={require('@/assets/images/loginImage.png')}
+                source={require('@/assets/images/registerImage.png')}
                 style={styles.headerImage}
               />
             </View>

@@ -1,12 +1,10 @@
-import {FlatList, Text, TextInput, TouchableOpacity, View, Dimensions, ActivityIndicator} from 'react-native'
+import {FlatList, Text, TextInput, TouchableOpacity, View, ActivityIndicator} from 'react-native'
 import React, {useState, useEffect, useCallback} from 'react'
 import {COLORS} from "@/assets/colors";
 import {Ionicons} from "@expo/vector-icons";
 import {searchRecipes} from "@/api/recipes";
 import {Image} from "expo-image";
 import {router} from "expo-router";
-
-const {width} = Dimensions.get('window');
 
 interface RecipeItem {
     id: string;
