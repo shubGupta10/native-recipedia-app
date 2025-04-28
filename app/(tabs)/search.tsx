@@ -5,6 +5,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {searchRecipes} from "@/api/recipes";
 import {Image} from "expo-image";
 import {router} from "expo-router";
+import DisplayUserSavedRecipe from '@/components/displayUserSavedRecipe';
 
 interface RecipeItem {
     id: string;
@@ -149,6 +150,7 @@ const Search = () => {
                     </View>
                 ) : null}
             </View>
+            <DisplayUserSavedRecipe/>
         </View>
     )
 }

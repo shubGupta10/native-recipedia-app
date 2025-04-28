@@ -1,6 +1,6 @@
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile} from "firebase/auth"
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, updateEmail, updateProfile} from "firebase/auth"
 import {auth, db} from "./firebaseClient"
-import {collection, doc, getDoc, getDocs, setDoc} from "@firebase/firestore";
+import {collection, doc, getDoc, getDocs, setDoc, updateDoc} from "@firebase/firestore";
 import {generateRandomId} from "@/utility/GenerateRandomId";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL!
@@ -30,6 +30,28 @@ export const loginUser = async (email: string, password: string) => {
     }
 }
 
+export const updateUserProfile = async (name: string, bio: string, email: string) => {
+    try {
+      const currentUser = auth.currentUser;
+  
+      if (!currentUser) {
+        throw new Error("No authenticated user.");
+      }
+  
+      if (email !== currentUser.email) {
+        await updateEmail(currentUser, email);
+      }
+  
+      await updateProfile(currentUser, {
+        displayName: name,
+        photoURL: bio, 
+      });
+  
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      throw error;
+    }
+  };
 
 export const GenerateRecipes = async (ingredients: string[]) => {
     try {

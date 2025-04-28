@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from "@/store/useAuthStore";
 import {COLORS} from "@/assets/colors";
 import {getAuth, signOut} from "firebase/auth";
+import { router } from 'expo-router';
 
 const Profile = () => {
     const { user } = useAuthStore();
@@ -90,7 +91,21 @@ const Profile = () => {
             </View>
 
             {/* Logout Button */}
-            <View className="p-4 items-center">
+            <View className="p-4 flex-row justify-center gap-4">
+                <TouchableOpacity
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(screen)/(user)/[id]",
+                            params: {id: user.uid}
+                        })
+                    }}
+                    className="flex-row items-center justify-center py-3 px-8 rounded-full my-4"
+                    style={{ backgroundColor: COLORS.primary }}
+                >
+                    <Ionicons name="person-circle" size={20} color={COLORS.white} />
+                    <Text className="text-base font-medium ml-2" style={{ color: COLORS.white }}>Edit Profile</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                     onPress={handleLogout}
                     className="flex-row items-center justify-center py-3 px-8 rounded-full my-4"
