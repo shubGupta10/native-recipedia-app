@@ -23,16 +23,23 @@ const BASE_URL = "https://api.spoonacular.com";
 
 export const getPopularRecipes = async (): Promise<PopularCategoriesProps[]> => {
     const cacheKey = 'popular-recipes';
-
     try {
+        // Check if we have valid cached data
         const cachedData = await getWithExpiry<PopularCategoriesProps[]>(cacheKey);
+        
+        // If we have valid cached data that hasn't expired, return it
         if (cachedData) return cachedData;
-
+        
+        // Otherwise fetch new data
         const res = await fetch(`${BASE_URL}/recipes/complexSearch?sort=popularity&number=10&cuisine=Indian&apiKey=${API_KEY}`);
         const data = await res.json();
         const recipes = Array.isArray(data.results) ? data.results : [];
-
-        await storeWithExpiry<PopularCategoriesProps[]>(cacheKey, recipes);
+        
+        // Store new data with expiry
+        if (recipes.length > 0) {
+            await storeWithExpiry<PopularCategoriesProps[]>(cacheKey, recipes);
+        }
+        
         return recipes;
     } catch (error) {
         console.error("Error fetching popular recipes:", error);
@@ -40,19 +47,25 @@ export const getPopularRecipes = async (): Promise<PopularCategoriesProps[]> => 
     }
 };
 
-
 export const getHealthyRecipes = async (): Promise<HealthyRecipesProps[]> => {
     const cacheKey = 'healthy-recipes';
-
     try {
+        // Check if we have valid cached data
         const cachedData = await getWithExpiry<HealthyRecipesProps[]>(cacheKey);
+        
+        // If we have valid cached data that hasn't expired, return it
         if (cachedData) return cachedData;
-
+        
+        // Otherwise fetch new data
         const res = await fetch(`${BASE_URL}/recipes/complexSearch?maxCalories=300&number=10&cuisine=Indian&apiKey=${API_KEY}`);
         const data = await res.json();
         const recipes = Array.isArray(data.results) ? data.results : [];
-
-        await storeWithExpiry<HealthyRecipesProps[]>(cacheKey, recipes);
+        
+        // Store new data with expiry
+        if (recipes.length > 0) {
+            await storeWithExpiry<HealthyRecipesProps[]>(cacheKey, recipes);
+        }
+        
         return recipes;
     } catch (error) {
         console.error("Error fetching healthy recipes:", error);

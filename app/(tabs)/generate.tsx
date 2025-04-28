@@ -1,4 +1,4 @@
-import {Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert} from 'react-native';
+import {Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert, Image} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useAuthStore} from "@/store/useAuthStore";
 import {COLORS} from "@/assets/colors";
@@ -6,7 +6,6 @@ import {Ionicons} from "@expo/vector-icons";
 import {GenerateRecipes, saveRecipeToFirestore} from "@/firebase/firebaseFunctions";
 import Markdown from 'react-native-markdown-display';
 
-// Define the recipe response type
 interface RecipeResponse {
     name: string;
     prepTime: string;
@@ -16,7 +15,6 @@ interface RecipeResponse {
     servingSuggestion: string;
 }
 
-// Define the API response format
 interface ApiResponse {
     content: string;
     message: string;
@@ -37,7 +35,6 @@ const Generate = () => {
     const handleGenerate = async () => {
         if (!ingredientsText.trim()) return;
 
-        // Convert comma-separated string to array and trim whitespace
         const ingredientsArray = ingredientsText
             .split(',')
             .map(item => item.trim())
@@ -48,24 +45,18 @@ const Generate = () => {
 
         try {
             const result = await GenerateRecipes(ingredientsArray);
-
             let parsedResult: RecipeResponse;
 
-            // Handle the nested JSON structure from the API
             if (typeof result === 'object' && result !== null) {
-                // Check if it's the API format with content property
                 if ('content' in result) {
                     const apiResponse = result as ApiResponse;
-                    // Extract JSON from the content which might be wrapped in code blocks
                     const jsonContent = extractJsonFromCodeBlock(apiResponse.content);
                     parsedResult = JSON.parse(jsonContent);
                 } else {
-                    // Already in the correct format
                     parsedResult = result as RecipeResponse;
                 }
             } else if (typeof result === 'string') {
                 try {
-                    // Check if it might be a string containing JSON with code blocks
                     const jsonContent = extractJsonFromCodeBlock(result);
                     parsedResult = JSON.parse(jsonContent);
                 } catch (parseError) {
@@ -78,7 +69,6 @@ const Generate = () => {
                 throw new Error("Invalid response format");
             }
 
-            console.log("Parsed recipe:", parsedResult);
             setRecipeResponse(parsedResult);
         } catch (error) {
             console.error("Error generating recipe:", error);
@@ -88,60 +78,12 @@ const Generate = () => {
         }
     };
 
-    // Helper function to extract JSON from a string that might contain code blocks
     const extractJsonFromCodeBlock = (content: string): string => {
-        // Check if the content contains a code block
         const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (codeBlockMatch && codeBlockMatch[1]) {
             return codeBlockMatch[1].trim();
         }
-
-        // If not in a code block, return the original content
         return content;
-    };
-
-    // Format the recipe data into markdown for display
-    const formatRecipeToMarkdown = (recipe: RecipeResponse): string => {
-        if (!recipe) return '';
-
-        let markdown = `# ${recipe.name}\n\n`;
-        markdown += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime}\n\n`;
-
-        markdown += `## Ingredients\n\n`;
-
-        if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-            for (let i = 0; i < recipe.ingredients.length; i++) {
-                markdown += `- ${recipe.ingredients[i]}\n`;
-            }
-        }
-
-        markdown += `\n## Instructions\n\n`;
-
-        if (recipe.instructions && Array.isArray(recipe.instructions)) {
-            for (let i = 0; i < recipe.instructions.length; i++) {
-                markdown += `${i+1}. ${recipe.instructions[i]}\n\n`;
-            }
-        }
-
-        markdown += `## Serving Suggestion\n\n`;
-        markdown += recipe.servingSuggestion;
-
-        return markdown;
-    };
-
-    // Recipe display component
-    const RecipeDisplay = () => {
-        if (!recipeResponse) return null;
-
-        const markdownContent = formatRecipeToMarkdown(recipeResponse);
-
-        return (
-            <View className="bg-white rounded-xl p-5 mb-6 shadow-md" style={{backgroundColor: COLORS.cardBackground}}>
-                <Markdown>
-                    {markdownContent}
-                </Markdown>
-            </View>
-        );
     };
 
     const handleSaveReceipe = async () => {
@@ -151,7 +93,7 @@ const Generate = () => {
                 return;
             }
 
-            const result = await saveRecipeToFirestore(userId, recipeResponse);
+            await saveRecipeToFirestore(userId, recipeResponse);
 
             Alert.alert(
                 "Recipe Saved",
@@ -163,6 +105,87 @@ const Generate = () => {
         }
     };
 
+    // Enhanced Recipe Display Component
+    const RecipeDisplay = () => {
+        if (!recipeResponse) return null;
+        
+        return (
+            <View className="bg-white rounded-xl p-5 mb-4 shadow-md" style={{backgroundColor: COLORS.cardBackground}}>
+                {/* Recipe Title */}
+                <View className="mb-4 border-b pb-3" style={{borderColor: COLORS.border}}>
+                    <Text className="text-2xl font-bold" style={{color: COLORS.textPrimary}}>
+                        {recipeResponse.name}
+                    </Text>
+                </View>
+                
+                {/* Cooking Time Info */}
+                <View className="flex-row items-center justify-between mb-6 px-2">
+                    <View className="flex-row items-center">
+                        <Ionicons name="time-outline" size={20} style={{color: COLORS.primary, marginRight: 6}} />
+                        <View>
+                            <Text className="text-sm font-medium" style={{color: COLORS.textSecondary}}>Prep Time</Text>
+                            <Text className="text-base font-semibold" style={{color: COLORS.textDark}}>{recipeResponse.prepTime}</Text>
+                        </View>
+                    </View>
+                    
+                    <View className="h-10 w-0.5" style={{backgroundColor: COLORS.border}} />
+                    
+                    <View className="flex-row items-center">
+                        <Ionicons name="flame-outline" size={20} style={{color: COLORS.primary, marginRight: 6}} />
+                        <View>
+                            <Text className="text-sm font-medium" style={{color: COLORS.textSecondary}}>Cook Time</Text>
+                            <Text className="text-base font-semibold" style={{color: COLORS.textDark}}>{recipeResponse.cookTime}</Text>
+                        </View>
+                    </View>
+                </View>
+                
+                {/* Ingredients Section */}
+                <View className="mb-6">
+                    <View className="flex-row items-center mb-3">
+                        <Ionicons name="basket-outline" size={20} style={{color: COLORS.primary, marginRight: 8}} />
+                        <Text className="text-xl font-semibold" style={{color: COLORS.textPrimary}}>Ingredients</Text>
+                    </View>
+                    <View className="bg-gray-50 rounded-lg p-4" style={{backgroundColor: COLORS.background}}>
+                        {recipeResponse.ingredients && recipeResponse.ingredients.map((ingredient, index) => (
+                            <View key={index} className="flex-row items-start mb-2">
+                                <View className="w-2 h-2 rounded-full mt-2 mr-3" style={{backgroundColor: COLORS.primary}} />
+                                <Text className="text-base flex-1" style={{color: COLORS.textDark}}>{ingredient}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+                
+                {/* Instructions Section */}
+                <View className="mb-6">
+                    <View className="flex-row items-center mb-3">
+                        <Ionicons name="list-outline" size={20} style={{color: COLORS.primary, marginRight: 8}} />
+                        <Text className="text-xl font-semibold" style={{color: COLORS.textPrimary}}>Instructions</Text>
+                    </View>
+                    <View className="bg-gray-50 rounded-lg p-4" style={{backgroundColor: COLORS.background}}>
+                        {recipeResponse.instructions && recipeResponse.instructions.map((instruction, index) => (
+                            <View key={index} className="flex-row mb-4">
+                                <View className="w-6 h-6 rounded-full items-center justify-center mr-3" style={{backgroundColor: COLORS.primary}}>
+                                    <Text className="text-xs font-bold" style={{color: COLORS.white}}>{index + 1}</Text>
+                                </View>
+                                <Text className="text-base flex-1" style={{color: COLORS.textDark}}>{instruction}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+                
+                {/* Serving Suggestion */}
+                <View>
+                    <View className="flex-row items-center mb-3">
+                        <Ionicons name="restaurant-outline" size={20} style={{color: COLORS.primary, marginRight: 8}} />
+                        <Text className="text-xl font-semibold" style={{color: COLORS.textPrimary}}>Serving Suggestion</Text>
+                    </View>
+                    <View className="bg-gray-50 rounded-lg p-4" style={{backgroundColor: COLORS.background}}>
+                        <Text className="text-base" style={{color: COLORS.textDark}}>{recipeResponse.servingSuggestion}</Text>
+                    </View>
+                </View>
+            </View>
+        );
+    };
 
     return (
         <ScrollView
@@ -271,7 +294,7 @@ const Generate = () => {
                     </View>
                 </View>
             ) : (
-                // Recipe display section - show when a recipe is generated
+                // Recipe display section - improved UI
                 <View className="p-6">
                     <View className="flex-row justify-between items-center mb-6">
                         <View>
@@ -291,17 +314,15 @@ const Generate = () => {
 
                     <RecipeDisplay />
 
-                    <View className="flex-row justify-center gap-4 mb-8">
-                        <TouchableOpacity
-                            onPress={handleSaveReceipe}
-                            className="flex-row items-center justify-center py-3 px-5 rounded-xl shadow-sm flex-1"
-                            style={{backgroundColor: COLORS.primary}}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="bookmark-outline" size={18} style={{color: COLORS.white, marginRight: 8}} />
-                            <Text className="font-semibold" style={{color: COLORS.white}}>Save Recipe</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        onPress={handleSaveReceipe}
+                        className="flex-row items-center justify-center py-4 px-5 rounded-xl shadow-sm mb-8"
+                        style={{backgroundColor: COLORS.primary}}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="bookmark-outline" size={20} style={{color: COLORS.white, marginRight: 8}} />
+                        <Text className="text-lg font-semibold" style={{color: COLORS.white}}>Save Recipe</Text>
+                    </TouchableOpacity>
                 </View>
             )}
         </ScrollView>
